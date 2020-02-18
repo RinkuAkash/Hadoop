@@ -1,0 +1,4 @@
+This is word count program
+This will return each word count
+This is mapreduce program
+Hadoop practice set
