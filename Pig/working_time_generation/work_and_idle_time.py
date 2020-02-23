@@ -1,14 +1,6 @@
-from snakebite.client import Client
 import datetime
 import pandas as pd
 
-client = Client('localhost', 54310)
-
-for directory in client.ls(['/user_log']):
-    print(directory)
-
-for copy_cpu_data in client.copyToLocal(['/user_log/userlog_filtered_data.csv'], "userlog_cpu_data.csv"):
-    print(copy_cpu_data)
 
 user_log = pd.read_csv("userlog_cpu_data.csv")
 user_log = user_log[['DateTime', 'user_name', 'keyboard', 'mouse']]
@@ -32,12 +24,13 @@ for user in unique_users:
 
     for index in user_log.index:
 
-        if users_new_data[user]['start_time'] is None:
-            users_new_data[user]['start_time'] = user_log['DateTime'][index]
-        if users_new_data[user]['end_time'] is None or users_new_data[user]['end_time'] < user_log['DateTime'][index]:
-            users_new_data[user]['end_time'] = user_log['DateTime'][index]
-
         if user == user_log['user_name'][index]:
+            if users_new_data[user]['start_time'] is None:
+                users_new_data[user]['start_time'] = user_log['DateTime'][index]
+
+            if users_new_data[user]['end_time'] is None or users_new_data[user]['end_time'] < user_log['DateTime'][index]:
+                users_new_data[user]['end_time'] = user_log['DateTime'][index]
+
             if count_idle >= 5:
                 if count_idle == 5:
                     users_new_data[user_log['user_name'][index]]['idle_time'] \
@@ -59,6 +52,8 @@ for user in unique_users:
            + (str_to_time(users_new_data[user].get('end_time'), '%Y-%m-%d %H:%M:%S')
               - str_to_time(users_new_data[user].get('start_time'), '%Y-%m-%d %H:%M:%S')))\
           - users_new_data[user].get('idle_time')
+    users_new_data[user]['working_hours'] = datetime.datetime(2019, 10, 24, 0, 0, 0) + users_new_data[user].get('working_hours')
+
 
 userlog_data = pd.DataFrame(users_new_data)
 userlog_data = userlog_data.T
